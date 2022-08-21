@@ -4,8 +4,10 @@
 
 import 'dart:async';
 import 'dart:math';
+import 'dart:io' show Platform;
 
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
@@ -573,7 +575,21 @@ class _ScrollablePositionedListState extends State<ScrollablePositionedList>
 }
 
 class _ListDisplayDetails {
-  _ListDisplayDetails(this.key);
+  _ListDisplayDetails(this.key) {
+    if (Platform.isWindows) {
+      scrollController.addListener(() {
+        ScrollDirection scrollDirection =
+            scrollController.position.userScrollDirection;
+        if (scrollDirection != ScrollDirection.idle) {
+          double scrollEnd = scrollController.offset +
+              (scrollDirection == ScrollDirection.reverse ? 80 : -80);
+          scrollEnd = min(scrollController.position.maxScrollExtent,
+              max(scrollController.position.minScrollExtent, scrollEnd));
+          scrollController.jumpTo(scrollEnd);
+        }
+      });
+    }
+  }
 
   final itemPositionsNotifier = ItemPositionsNotifier();
   final scrollController = ScrollController(keepScrollOffset: false);
